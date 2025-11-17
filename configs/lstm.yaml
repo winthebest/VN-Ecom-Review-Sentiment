@@ -1,0 +1,36 @@
+model_variants:
+  default:
+    embedding_dim: 300
+    hidden_dim: 128
+    num_layers: 1
+    dropout: 0.3
+    learning_rate: 0.001
+    batch_size: 64
+    epochs: 10
+    patience: 3
+    optimizer: "adam"
+    loss_function: "cross_entropy"
+
+  variant_1:
+    embedding_dim: 200
+    hidden_dim: 256
+    num_layers: 2
+    dropout: 0.4
+    learning_rate: 0.0005
+    batch_size: 64
+    epochs: 15
+    patience: 4
+    optimizer: "adam"
+    loss_function: "cross_entropy"
+
+  variant_2:
+    embedding_dim: 400
+    hidden_dim: 512
+    num_layers: 3
+    dropout: 0.5
+    learning_rate: 0.0003
+    batch_size: 32
+    epochs: 20
+    patience: 5
+    optimizer: "adam"
+    loss_function: "cross_entropy"

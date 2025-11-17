@@ -1,0 +1,16 @@
+Flask==3.1.2
+joblib==1.5.2
+matplotlib==3.7.2
+nltk==3.9.2
+numpy==2.2.6
+pandas==2.3.3
+PyYAML==6.0.3
+tqdm==4.67.1
+scikit_learn==1.5.2
+torch==2.3.1
+torchtext==0.18.0
+transformers==4.37.2
+mlflow==3.5.0
+mlflow_skinny==3.5.0
+mlflow_tracing==3.5.0
+py_vncorenlp==0.1.4
