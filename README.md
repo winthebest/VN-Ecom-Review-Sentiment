@@ -1,50 +1,50 @@
 # Vietnamese Sentiment Analysis Platform
 
-Nền tảng phân tích cảm xúc tiếng Việt sử dụng nhiều kiến trúc (CNN/GRU/LSTM/XGBoost/PhoBERT). Hệ thống gồm pipeline huấn luyện tự động, tracking bằng MLflow, và dịch vụ Flask cho suy luận trực tiếp với PhoBERT fine-tune.
+End-to-end Vietnamese sentiment analysis stack with multiple model families (CNN, GRU, LSTM, XGBoost, PhoBERT). The project couples an automated training pipeline, MLflow tracking, and a production-ready Flask service for online inference.
 
-## Tính năng chính
-- Tiền xử lý chuyên sâu cho tiếng Việt (chuẩn hóa teencode, VnCoreNLP word segmentation, loại bỏ stopwords).
-- Huấn luyện hàng loạt mô hình qua `pipeline.py`, log chỉ số và artifact lên MLflow.
-- Lưu mô hình và dữ liệu đặc trưng trong các thư mục `models/` và `Data/processed/` để tái sử dụng.
-- API Flask (`app/models/app.py`) cung cấp REST endpoint `/predict` và trang web demo để phân tích cảm xúc với PhoBERT.
-- Dockerfile cho môi trường suy luận độc lập, giúp triển khai nhanh lên bất kỳ hạ tầng nào.
+## Highlights
+- Vietnamese-specific preprocessing: teencode normalization, VnCoreNLP tokenization, stopword removal.
+- Unified training pipeline (`pipeline.py`) that sequentially runs preprocessing and model training while logging metrics/artifacts to MLflow.
+- Persisted datasets and checkpoints under `Data/processed/` and `models/` for quick reuse.
+- PhoBERT inference API (`app/models/app.py`) exposing a `/predict` REST endpoint plus a lightweight HTML form.
+- Dockerized runtime that ships the fine-tuned PhoBERT weights for portable deployment.
 
-## Kiến trúc thư mục (rút gọn)
+## Directory Layout
 ```
 D:/Project
-├── app/models/            # Flask service + Docker build context
-├── configs/               # Cấu hình YAML cho từng mô hình
+├── app/models/            # Flask service + Docker context
+├── configs/               # YAML configs per architecture
 ├── Data/
-│   ├── raw/               # Dữ liệu gốc
-│   └── processed/         # Numpy & torch tensors sau preprocessing
-├── models/                # Checkpoints cho CNN/GRU/LSTM/XGBoost/PhoBERT
-├── mlruns/                # MLflow tracking (file:// backend)
-├── src/                   # Script preprocessing & train từng mô hình
-└── pipeline.py            # Điều phối toàn bộ pipeline
+│   ├── raw/               # Original dataset(s)
+│   └── processed/         # Numpy/Torch tensors after preprocessing
+├── models/                # CNN/GRU/LSTM/XGBoost/PhoBERT checkpoints
+├── mlruns/                # MLflow file-based tracking store
+├── src/                   # Preprocessing + training scripts
+└── pipeline.py            # Orchestrates full pipeline
 ```
 
-## Chuẩn bị môi trường
-1. Cài Python 3.10+ và pip.
-2. Cài đặt phụ thuộc:
+## Environment Setup
+1. Install Python 3.10+.
+2. Install dependencies:
    ```bash
    pip install -r requirements.txt
-   pip install -r app/models/requirements.txt   # nếu chạy service riêng
+   pip install -r app/models/requirements.txt   # optional: isolated service env
    ```
-3. (Tuỳ chọn) đặt biến `JAVA_HOME` và tải mô hình VnCoreNLP như trong `app/models/utils.py` để chạy word segmentation.
-4. Tải PhoBERT sẵn vào `cache/` theo đường dẫn khai báo nếu muốn tránh tải lại từ HuggingFace.
+3. (Optional) configure `JAVA_HOME` and download VnCoreNLP as outlined in `app/models/utils.py` if you rely on its word segmenter.
+4. Pre-download PhoBERT into `cache/` to avoid hitting HuggingFace during training.
 
-## Chạy pipeline huấn luyện
+## Full Training Pipeline
 ```bash
 python pipeline.py
 ```
-- Script tự chuyển vào `src/`, lần lượt chạy `preprocessing.py`, `CNN_train.py`, `GRU_train.py`, `LSTM_train.py`, `XGBoost_train.py`.
-- Sau khi chạy xong mở MLflow UI:
+- The script switches into `src/` and executes `preprocessing.py`, `CNN_train.py`, `GRU_train.py`, `LSTM_train.py`, `XGBoost_train.py`.
+- Inspect MLflow runs after training:
   ```bash
   mlflow ui --backend-store-uri file:///D:/Project/mlruns
   ```
-  rồi truy cập `http://localhost:5000` để xem kết quả.
+  Visit `http://localhost:5000`.
 
-### Huấn luyện từng mô hình thủ công
+### Train Models Individually
 ```bash
 cd src
 python preprocessing.py
@@ -52,29 +52,29 @@ python CNN_train.py
 python GRU_train.py
 python LSTM_train.py
 python XGBoost_train.py
-# PhoBERT_train.py có thể bật thêm nếu cần fine-tune lại
+# PhoBERT_train.py can be enabled when you want to fine-tune again
 ```
 
-## Dịch vụ PhoBERT API
+## PhoBERT Inference Service
 ```bash
 cd app/models
 python app.py
 ```
-- `POST /predict` với JSON `{ "text": "..." }` trả về nhãn `NEG/NEU/POS` và xác suất.
-- `GET /` cung cấp form web đơn giản để thử nghiệm nhanh.
+- `POST /predict` accepts `{ "text": "..." }` and returns `NEG/NEU/POS` plus probabilities.
+- `GET /` serves a minimal HTML form for quick manual checks.
 
-## Docker hoá dịch vụ
+## Docker Deployment
 ```bash
 cd app/models
 docker build -t vn-sentiment-phobert .
 docker run -p 8000:8000 vn-sentiment-phobert
 ```
-- Container đọc file `phobert_sentiment_classifier.pth` đặt cùng thư mục.
-- Có thể đẩy image lên Docker Hub bằng `docker tag` và `docker push` (đã thực hiện trước đó).
+- Ensure `phobert_sentiment_classifier.pth` resides next to the Dockerfile before building.
+- Push to Docker Hub (already done) via `docker tag` and `docker push` as needed.
 
-## Đưa mã nguồn lên GitHub
-1. Đăng nhập GitHub, tạo repository mới (ví dụ `vn-sentiment-analysis`), để trống README vì ta đã có.
-2. Trên máy cục bộ:
+## Publishing to GitHub
+1. Create a new GitHub repository (e.g., `vn-sentiment-analysis`) without auto-generated files.
+2. On your local machine:
    ```bash
    cd D:/Project
    git init
@@ -83,10 +83,10 @@ docker run -p 8000:8000 vn-sentiment-phobert
    git remote add origin https://github.com/<username>/vn-sentiment-analysis.git
    git push -u origin main
    ```
-3. Nếu repository đã tồn tại, chỉ cần `git remote set-url origin ...` trước khi push.
+3. For an existing repo, update the remote via `git remote set-url origin ...` before pushing.
 
-## Ghi chú
-- Nên giữ riêng dữ liệu thô hoặc mô hình quá lớn (ví dụ `.pth`, `.npy`) bằng `.gitignore` nếu không muốn đẩy lên GitHub.
-- Thư mục `mlruns/` có thể rất lớn; cân nhắc lưu trữ ngoài GitHub hoặc dùng DVC/MLflow Artifact Store.
-- Khi triển khai production, thiết lập GPU/CPU phù hợp và kiểm soát version của tokenizer/model để đảm bảo tính tái lập.
+## Notes
+- Large assets (`.pth`, `.npy`) are ignored via `.gitignore`. Provide alternative download links or regeneration instructions for collaborators.
+- `mlruns/` grows quickly; consider external artifact stores or keep it local-only.
+- For production, fix transformer/tokenizer versions and size instances (CPU/GPU) to guarantee reproducibility.
 
