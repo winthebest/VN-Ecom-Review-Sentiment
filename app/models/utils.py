@@ -70,10 +70,6 @@ def remove_repetitive_characters(text: str):
 
 
 def correct_spelling_teencode(text: str, teencode_dict, vn_segmenter):
-    """
-    Chuẩn hoá teencode và từ sai chính tả, 
-    đồng thời tách từ bằng VnCoreNLP để tương thích với PhoBERT.
-    """
     text = text.lower().strip()
     segmented_words = vn_segmenter.word_segment(text)  # -> list of token lists
     flattened_words = [word for sent in segmented_words for word in sent]
