@@ -1,0 +1,6 @@
+data/processed/
+src/mlruns/
+src/__pycache__/
+app/__pycache__/
+mlruns/
+cache/
