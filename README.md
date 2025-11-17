@@ -11,16 +11,28 @@ End-to-end Vietnamese sentiment analysis stack with multiple model families (CNN
 
 ## Directory Layout
 ```
-D:/Project
-├── app/models/            # Flask service + Docker context
-├── configs/               # YAML configs per architecture
-├── Data/
-│   ├── raw/               # Original dataset(s)
-│   └── processed/         # Numpy/Torch tensors after preprocessing
-├── models/                # CNN/GRU/LSTM/XGBoost/PhoBERT checkpoints
-├── mlruns/                # MLflow file-based tracking store
-├── src/                   # Preprocessing + training scripts
-└── pipeline.py            # Orchestrates full pipeline
+VN-Ecom-Review-Sentiment/
+│── configs/            # YAML configuration files for different models
+│   ├── cnn.yaml        # Config for CNN model
+│   ├── gru.yaml        # Config for GRU model
+│   ├── lstm.yaml       # Config for LSTM model
+│   ├── xgboost.yaml    # Config for XGBoost model
+│── Data/               # Raw and processed datasets
+         ├── raw/       # Original dataset(s)
+│        └── processed/ # Numpy/Torch tensors after preprocessing
+│── models/             # Saved trained models
+│── src/                # Source code 
+│── pipeline.py         # Runs all training scripts sequentially
+│── requirements.txt    # Required dependencies
+│── Dockerfile          # Docker container setup
+│── README.md           # Project documentation
+│── app/
+         ├── raw/              # FastAPI application
+│           ├── app.py          # FastAPI server
+│           ├── utils.py        # Helper functions
+│           ├── Dockerfile      # Docker setup for API
+│           ├── requirements.txt # Dependencies for API
+│           ├── VnCoreNLP-master/ # VnCoreNLP module for NLP tasks
 ```
 
 ## Environment Setup
@@ -37,7 +49,7 @@ D:/Project
 ```bash
 python pipeline.py
 ```
-- The script switches into `src/` and executes `preprocessing.py`, `CNN_train.py`, `GRU_train.py`, `LSTM_train.py`, `XGBoost_train.py`.
+- The script switches into `src/` and executes `preprocessing.py`, `CNN_train.py`, `GRU_train.py`, `LSTM_train.py`, `XGBoost_train.py`, `PhoBERT_train.py`.
 - Inspect MLflow runs after training:
   ```bash
   mlflow ui --backend-store-uri file:///D:/Project/mlruns
@@ -72,21 +84,5 @@ docker run -p 8000:8000 vn-sentiment-phobert
 - Ensure `phobert_sentiment_classifier.pth` resides next to the Dockerfile before building.
 - Push to Docker Hub (already done) via `docker tag` and `docker push` as needed.
 
-## Publishing to GitHub
-1. Create a new GitHub repository (e.g., `vn-sentiment-analysis`) without auto-generated files.
-2. On your local machine:
-   ```bash
-   cd D:/Project
-   git init
-   git add .
-   git commit -m "Initial commit: Vietnamese sentiment analysis platform"
-   git remote add origin https://github.com/<username>/vn-sentiment-analysis.git
-   git push -u origin main
-   ```
-3. For an existing repo, update the remote via `git remote set-url origin ...` before pushing.
 
-## Notes
-- Large assets (`.pth`, `.npy`) are ignored via `.gitignore`. Provide alternative download links or regeneration instructions for collaborators.
-- `mlruns/` grows quickly; consider external artifact stores or keep it local-only.
-- For production, fix transformer/tokenizer versions and size instances (CPU/GPU) to guarantee reproducibility.
 
